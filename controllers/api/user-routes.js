@@ -57,7 +57,7 @@ router.get('/:id', (req, res) => {
 });
 
 //POST /api/users
-router.post('/', withAuth, (req, res) => {
+router.post('/', (req, res) => {
     //expects {username: '', email: 'string@string.com', password: 'password1234'}
     User.create({
         username: req.body.username,
@@ -65,10 +65,11 @@ router.post('/', withAuth, (req, res) => {
         password: req.body.password
     })
         .then(dbUserData => {
+            req.session.user_id = dbUserData.id;
+            req.session.username = dbUserData.username;
+            req.session.loggedIn = true;
+
             req.session.save(() => {
-                req.session.user_id = dbUserData.id;
-                req.session.username = dbUserData.username;
-                req.session.loggedIn = true;
 
                 res.json(dbUserData);
             });
@@ -95,11 +96,12 @@ router.post('/login', (req, res) => {
                 return;
             }
 
+            //declare session variables
+            req.session.user_id = dbUserData.id;
+            req.session.username = dbUserData.username;
+            req.session.loggedIn = true;
+
             req.session.save(() => {
-                //declare session variables
-                req.session.user_id = dbUserData.id;
-                req.session.username = dbUserData.username;
-                req.session.loggedIn = true;
 
                 res.json({ user: dbUserData, message: 'You are now logged in!' });
             });
